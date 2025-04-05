@@ -1,0 +1,47 @@
+ScribbleDash: A Creative Drawing Application
+We are building a mobile drawing application called ScribbleDash that focuses on freestyle drawing with a clean, intuitive interface.
+App Overview
+ScribbleDash is designed as a creative drawing platform where users can express their artistic abilities. In this initial milestone, you're focusing on establishing the core drawing functionality with a simple, uncluttered user experience.
+The application's tagline captures its essence perfectly: "No app variants - just pure, unfiltered creativity!" Users can unleash their inner artist and draw freely on a canvas with the ability to undo mistakes and redo strokes.
+Key Screens & Flow
+Home Screen
+
+Clean interface with "ScribbleDash" prominently displayed at the top left
+Inviting "Start drawing!" headline that encourages interaction
+"Select game mode" subtitle guiding users to the next step
+A distinctive game mode option called "One Round Wonder" presented in a card with a green border and pencil illustration
+Bottom navigation bar with currently one active destination (Home)
+
+Difficulty Selection Screen
+
+After selecting a game mode, users are presented with three difficulty options:
+
+Beginner
+Challenging
+Master
+
+
+Each difficulty level will take users to the drawing canvas
+Close button in the top right corner allows users to return to the home screen
+
+Drawing Canvas
+
+Square canvas (1:1 aspect ratio) with rounded corners
+White background with a grid dividing the space into nine equal squares
+Touch-responsive drawing area where users can create freehand illustrations
+Three important controls at the bottom:
+
+Undo button: Removes the last drawn path (stores up to 5 previous actions)
+Redo button: Restores the most recently undone drawing action
+Clear Canvas button: Wipes the entire canvas clean
+
+
+Close button at the top right to exit back to the home screen
+
+Technical Highlights
+
+The drawing functionality allows for smooth, natural drawing with touch
+Sophisticated undo/redo system maintains a history of up to 5 drawing actions
+Appropriate button state management (disabled when no relevant actions are available)
+Clean navigation between all screens
+Single theme design with consistent styling throughout

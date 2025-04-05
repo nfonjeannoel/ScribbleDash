@@ -1,0 +1,185 @@
+```markdown
+# Android Project Architecture Guidelines
+
+This document outlines a recommended architecture, file organization, and coding patterns for Android projects using Kotlin, Jetpack Compose, Coroutines, Flow, and Koin. It aims to ensure consistency, maintainability, scalability, and testability across projects.
+
+## 1. High-Level Architecture: Feature-Based + Clean Architecture
+
+The recommended architecture combines two key principles:
+
+1.  **Feature-Based Modularization:** Code is primarily organized by application features (e.g., `user_profile/`, `product_list/`, `settings/`). This groups related functionality together, improving cohesion within features and reducing coupling between unrelated parts of the app. New features should be added as new top-level feature packages.
+2.  **Clean Architecture Layers:** Within each feature module (and the shared `core` module), code is strictly separated into standard Clean Architecture layers: `data`, `domain`, and `presentation`. This enforces separation of concerns, enhances testability, and promotes framework independence.
+
+## 2. Project Structure Overview
+
+The main application code should reside under a suitable base package (e.g., `com.yourcompany.yourproject`). The key top-level packages should be:
+
+*   `feature_name/`: **Feature Modules** - Each contains all code related to a specific application feature (data sources, business logic, UI). Replace `feature_name` with the actual feature name (e.g., `login`, `dashboard`, `order_history`).
+*   `core/`: **Core Module** - Holds shared code, base classes, utilities, common domain models/interfaces, presentation components (design system), and interfaces used across multiple features. It follows the `data`, `domain`, `presentation` structure internally.
+*   `di/`: **Dependency Injection** - Contains modules (using Koin or Hilt) for providing dependencies throughout the application (e.g., `AppModule`, `DataModule`, `NetworkModule`, `DatabaseModule`).
+*   `ui/`: **Global UI Components** - Contains application-wide UI elements like themes (`YourAppTheme`).
+*   `MainActivity.kt` (or similar): **Main Activity** - The primary entry point for the application UI. Responsible for setting up the overall structure, handling essential permissions (if any), initializing navigation, and applying the theme.
+*   `MainViewModel.kt` (optional): **Main View Model** - Associated with `MainActivity`, potentially managing global UI state or coordinating high-level actions unrelated to specific features (e.g., splash screen visibility, authentication status).
+*   `YourApplication.kt`: **Application Class** - The custom `Application` class, used for initializing dependency injection, logging, analytics, or other app-wide setup tasks.
+
+```
+[Root Package: com.yourcompany.yourproject]
+├── feature_one/         # Example Feature Module
+│   ├── data/
+│   ├── domain/
+│   └── presentation/
+├── feature_two/         # Another Feature Module
+│   ├── data/
+│   ├── domain/
+│   └── presentation/
+├── core/                # Core Shared Module
+│   ├── data/
+│   ├── domain/
+│   └── presentation/
+├── di/                  # Dependency Injection Modules
+│   ├── AppModule.kt
+│   ├── DataModule.kt
+│   └── ... (e.g., NetworkModule, DatabaseModule)
+├── ui/                  # Global UI (Theme, etc.)
+│   └── theme/
+├── MainActivity.kt      # Main Android Activity
+├── MainViewModel.kt     # Optional ViewModel for MainActivity
+└── YourApplication.kt   # Custom Application Class
+```
+
+## 3. Feature Module Structure (`feature_name/`)
+
+Each feature module must adhere to the following layered structure:
+
+### 3.1. `domain/`
+
+*   **Purpose:** Contains the core business logic and rules of the feature, completely independent of data sources and the UI framework. It defines *what* the feature does.
+*   **Contents:**
+    *   **Models/Entities:** Plain Kotlin data classes representing core business concepts (e.g., `User.kt`, `Product.kt`). These should have no Android framework dependencies.
+    *   **Repository Interfaces:** Defines contracts (Kotlin interfaces) for data access operations (e.g., `UserRepository.kt`, `ProductRepository.kt`). The domain layer *defines* the data operations needed, not *how* they are implemented.
+    *   **Use Cases (Interactors):** Encapsulates specific business operations or workflows involving one or more repositories or other use cases (e.g., `GetUserProfileUseCase.kt`, `SubmitOrderUseCase.kt`). Use cases orchestrate data flow and apply business rules.
+    *   **Value Objects:** Small, immutable objects representing simple concepts with potential validation or logic (e.g., `EmailAddress`, `OrderStatus`).
+
+### 3.2. `data/`
+
+*   **Purpose:** Implements the data access contracts defined in the `domain` layer. Handles all interactions with external data sources (database, network APIs, device sensors, preferences). It defines *how* data is retrieved and stored.
+*   **Contents:**
+    *   **Repository Implementations:** Concrete classes implementing the repository interfaces from the domain layer (e.g., `UserRepositoryImpl.kt`, `ProductRepositoryImpl.kt`). These implementations depend on specific data sources (DAOs, API services).
+    *   **Data Source Interfaces/Implementations (`datasource/`):** Defines contracts and implementations for interacting with specific data sources (e.g., Room DAO interfaces, Retrofit service interfaces, SharedPreferences wrappers).
+    *   **Data Transfer Objects (DTOs):** Data classes representing data structures specific to external sources (e.g., network API responses, database table entities). These should ideally stay within the `data` layer.
+    *   **Mappers (`mapper/`):** Utility functions or classes responsible for converting between domain models (from `domain/`) and data layer DTOs/entities. This prevents data layer details from leaking into the domain.
+
+### 3.3. `presentation/`
+
+*   **Purpose:** Handles the UI and user interaction logic. It connects the user interface (Compose) to the business logic in the `domain` layer (via ViewModels and Use Cases). It defines *how* information is displayed and *how* user input is handled.
+*   **Contents:**
+    *   **ViewModels:** AndroidX `ViewModel` classes responsible for:
+        *   Preparing and managing UI-related data (State).
+        *   Handling user interactions (Actions).
+        *   Interacting with the domain layer (calling Use Cases or Repositories).
+        *   Emitting one-time events (Events) for navigation or transient UI feedback.
+        *   Example: `UserProfileViewModel.kt`, `ProductListViewModel.kt`.
+    *   **UI State:** Immutable Kotlin data classes representing the complete state needed to render a specific screen or UI component. Example: `UserProfileScreenState`, `ProductListState`. Defined usually within or alongside the corresponding ViewModel.
+    *   **UI Actions/Events:** Sealed interfaces or classes defining:
+        *   **Actions:** User interactions or system triggers the ViewModel needs to process (e.g., `UserProfileScreenAction.OnSaveButtonClicked`, `ProductListAction.RefreshData`).
+        *   **Events:** One-time side effects the ViewModel signals to the UI (e.g., `UserProfileScreenEvent.NavigateToSettings`, `ProductListEvent.ShowErrorSnackbar`).
+    *   **Screens (`screens/`):** Composable functions representing entire application screens (e.g., `UserProfileScreen.kt`). Screens are often organized further by sub-feature or navigation flow within the feature module.
+    *   **UI Components:** Reusable Composable functions used as building blocks within screens (e.g., `UserProfileHeader.kt`, `ProductListItem.kt`). Shared components belong in `core/presentation/designsystem`.
+    *   **UI Models (Optional):** Data classes specifically tailored for display, potentially mapping from domain models and adding UI-specific details (like formatted strings or resource IDs). Example: `ProductUiModel`.
+
+```
+feature_name/
+├── data/
+│   ├── datasource/      # Data source interfaces/impl (DB, Network, Prefs)
+│   ├── mapper/          # Mappers (Domain <-> Data DTOs/Entities)
+│   └── [Entity]RepositoryImpl.kt # e.g., UserRepositoryImpl.kt
+├── domain/
+│   ├── model/           # Domain Models/Entities (e.g., User.kt)
+│   ├── repository/      # Repository Interfaces (e.g., UserRepository.kt)
+│   └── usecase/         # Use Cases/Interactors (e.g., GetUserProfileUseCase.kt)
+└── presentation/
+    ├── viewmodel/       # ViewModels (optional separate dir)
+    │   └── [ScreenName]ViewModel.kt # (State, Action, Event definitions often inside)
+    ├── screen/          # Composable Screens
+    │   └── [ScreenName]Screen.kt
+    └── component/       # Screen-specific reusable Composables
+```
+*(Note: Directory structure within layers (e.g., `model/`, `repository/` in domain) is flexible but should be consistent)*
+
+## 4. Presentation Layer Pattern (MVI/UDF with Compose)
+
+The presentation layer should follow a Model-View-Intent (MVI) or Unidirectional Data Flow (UDF) pattern, adapted for Jetpack Compose.
+
+### 4.1. ViewModel (`[ScreenName]ViewModel.kt`)
+
+*   **State Management:**
+    *   Define an immutable data class for the complete screen state (e.g., `data class [ScreenName]State(...)`).
+    *   Expose state using Compose's `StateFlow` or `mutableStateOf`. Prefer `StateFlow` for better testability and integration with coroutine scopes, collected in the UI using `collectAsStateWithLifecycle()`.
+    *   `val state: StateFlow<[ScreenName]State>` exposed publicly.
+    *   `private val _state = MutableStateFlow([ScreenName]State(...))` managed internally.
+    *   Updates happen via `_state.update { it.copy(...) }`.
+*   **Action Handling:**
+    *   Define a sealed interface for actions (e.g., `sealed interface [ScreenName]Action`).
+    *   Provide a public function `onAction(action: [ScreenName]Action)` for the UI to call.
+    *   Use a `when` block in `onAction` to process actions, launch coroutines (using `viewModelScope`) to interact with Use Cases/Repositories, and update the `_state`.
+*   **Event Handling (Side Effects):**
+    *   Define a sealed interface for one-time events (e.g., `sealed interface [ScreenName]Event`).
+    *   Use a `kotlinx.coroutines.channels.Channel` for sending events: `private val eventChannel = Channel<[ScreenName]Event>()`.
+    *   Expose events as a `Flow` consumed once by the UI: `val events = eventChannel.receiveAsFlow()`.
+    *   Send events from within action handling logic using `eventChannel.send(...)`.
+*   **Dependencies:** Injected via constructor (using Koin/Hilt), typically Use Cases from the `domain` layer. Avoid injecting Repositories directly if Use Cases exist for the required operations.
+*   **Coroutines:** Use `viewModelScope` for all coroutines launched from the ViewModel. Ensure background work happens off the main thread (Dispatchers.IO/Default), coordinated via Use Cases or Repositories.
+
+### 4.2. UI / Composable (`[ScreenName]Screen.kt`)
+
+*   **Screen Structure:**
+    *   A root composable for the screen (e.g., `[ScreenName]Screen`) often observes events and sets up scaffolds or basic layout.
+    *   Inject the ViewModel using `koinViewModel()` or `hiltViewModel()`.
+    *   Collect state using `viewModel.state.collectAsStateWithLifecycle()`.
+*   **State Observation:**
+    *   Pass the collected `state` value down to child composables that need to display data.
+    *   Child composables should be stateless where possible, receiving data and lambdas as parameters.
+*   **Triggering Actions:**
+    *   UI elements (Buttons, TextFields, etc.) call `viewModel.onAction(...)` with the appropriate action instance via lambdas passed down through the composable hierarchy.
+*   **Handling Events:**
+    *   Use a `LaunchedEffect` or a dedicated event observer composable (like `ObserveAsEvents` mentioned previously) in the root screen composable to collect the `viewModel.events` Flow.
+    *   Handle events within the collector (e.g., trigger navigation using a `NavController` instance or callbacks, show Snackbars/Dialogs).
+*   **Dependencies:** ViewModels are injected. Navigation actions are performed using a `NavController` instance (typically obtained via `rememberNavController()` at a higher level and passed down or accessed via composition locals) or through callbacks passed into the screen composable.
+
+## 5. Core Module (`core/`)
+
+*   **Purpose:** Centralize code shared across multiple features to avoid duplication and ensure consistency.
+*   **Structure:** Follows the `data`, `domain`, `presentation` layers.
+    *   `core/domain`: Common domain models (e.g., `AppError`, `UserSettings`), utility functions (`DateFormatter`), base Use Case interfaces, shared repository interfaces (if applicable).
+    *   `core/data`: Implementations for core repository interfaces, shared data sources (e.g., `SharedPreferencesWrapper`, `AnalyticsTrackerImpl`), common mappers.
+    *   `core/presentation`:
+        *   **`designsystem/`**: The heart of the UI toolkit. Contains reusable base Composables (`AppButton`, `AppTextField`, `LoadingIndicator`), theme definitions (`Color.kt`, `Theme.kt`, `Typography.kt`), `Icons`, dimensions (`Dimens.kt`).
+        *   Base UI logic, helper Composables (`ObserveAsEvents`), common UI state representations (`ResourceUiState`).
+        *   Base ViewModel classes (if common logic exists).
+        *   Navigation structure definition (`NavigationRoot`, routes, argument handling).
+
+## 6. Dependency Injection (`di/`)
+
+*   **Framework:** Use Koin or Hilt consistently.
+*   **Modules:** Organize modules logically (e.g., `AppModule`, `NetworkModule`, `DatabaseModule`, `RepositoryModule`, feature-specific modules if needed).
+*   **Scoping:** Apply appropriate scopes (Singleton, ViewModelScoped, ActivityScoped, etc.) based on the dependency's lifecycle requirements.
+*   **Initialization:** Initialize in the `YourApplication` class (`onCreate`).
+*   **Usage:** Use constructor injection wherever possible. Use field injection sparingly (e.g., in Activities/Fragments if not using Compose entry points). Use `koinViewModel()` / `hiltViewModel()` in Composables.
+
+## 7. MainActivity and Navigation
+
+*   **Responsibilities:** Minimal UI logic. Primarily responsible for setting the Compose `content`, applying the theme, setting up the `NavController`, defining the `NavHost` (`NavigationRoot` from core), and potentially handling deep links or global permission checks.
+*   **Navigation:** Use Jetpack Navigation Compose. Define routes and destinations within the `core/presentation` or a dedicated navigation module. Pass the `NavController` down to screens that need to trigger navigation or use navigation callbacks/events.
+
+## 8. Testing
+
+*   **Unit Tests:**
+    *   **Domain Layer:** Test Use Cases and domain models thoroughly. Mock repository interfaces.
+    *   **Data Layer:** Test Repositories (mocking DAOs/API services), Mappers, and potentially individual data sources.
+    *   **Presentation Layer:** Test ViewModels extensively. Mock Use Cases/Repositories. Verify state updates and event emissions based on actions using libraries like `kotlinx-coroutines-test` and Turbine.
+*   **Integration Tests:** Test interactions between layers (e.g., ViewModel -> Use Case -> Repository).
+*   **UI Tests (Compose):** Test Composable functions and user flows using `compose-ui-test`.
+
+By adhering to these guidelines, projects will benefit from a clear, consistent, and robust architecture that facilitates development, testing, and long-term maintenance.
+```
+

@@ -1,0 +1,87 @@
+# ScribbleDash Implementation: Step-by-Step Todo List
+
+## 1. Project Setup & Configuration
+- [ ] Create a new mobile app project
+- [ ] Configure app theme colors (based on mockups)
+- [ ] Set up navigation architecture
+- [ ] Create folder structure for screens, components, and utilities
+- [ ] Add Material Design dependencies for icons
+
+## 2. Home Screen Implementation
+- [ ] Create HomeScreen component with proper layout
+- [ ] Add ScribbleDash title at top left
+- [ ] Create "Start drawing!" headline and "Select game mode" subtitle
+- [ ] Implement GameModeCard component with:
+  - [ ] Green border styling
+  - [ ] "One Round Wonder" text positioning
+  - [ ] Pencil illustration on right side
+  - [ ] Touch handling to navigate to Difficulty screen
+- [ ] Implement bottom navigation bar with Home destination
+- [ ] Add placeholder for second destination (to be implemented later)
+
+## 3. Difficulty Selection Screen
+- [ ] Create DifficultyScreen component
+- [ ] Add close button in top right (with navigation back to Home)
+- [ ] Add "Start drawing!" headline and "Choose a difficulty setting" subtitle
+- [ ] Create difficulty option components:
+  - [ ] Beginner option
+  - [ ] Challenging option  
+  - [ ] Master option
+- [ ] Implement navigation from any difficulty option to DrawScreen
+- [ ] Position difficulty options with slight x-axis offset as per requirements
+
+## 4. Drawing Canvas Implementation
+- [ ] Create DrawScreen component with proper layout
+- [ ] Add close button (with navigation back to Home)
+- [ ] Implement canvas component with:
+  - [ ] 1:1 aspect ratio and rounded corners
+  - [ ] White background
+  - [ ] Grid lines to form nine equal squares
+- [ ] Create drawing functionality:
+  - [ ] Track touch events on canvas
+  - [ ] Implement path drawing logic
+  - [ ] Store drawn paths for manipulation
+
+## 5. Canvas Controls Implementation
+- [ ] Create bottom button row layout
+- [ ] Implement Undo button:
+  - [ ] Connect to path removal logic
+  - [ ] Implement storage of up to 5 undone paths
+  - [ ] Add logic to remove oldest undo when exceeding 5
+  - [ ] Add disabled state when no paths exist
+- [ ] Implement Redo button:
+  - [ ] Connect to path restoration logic
+  - [ ] Implement clearing redo stack when new path is drawn
+  - [ ] Add disabled state when no undone paths exist
+- [ ] Implement Clear Canvas button:
+  - [ ] Add logic to remove all paths
+  - [ ] Add logic to clear undo/redo history
+  - [ ] Add disabled state when canvas is empty
+
+## 6. State Management
+- [ ] Implement state management for:
+  - [ ] Current drawn paths
+  - [ ] Undo history (max 5 paths)
+  - [ ] Redo history
+  - [ ] Button enabled/disabled states
+- [ ] Ensure proper state updates across screen navigation
+
+## 7. Testing & Refinement
+- [ ] Test navigation flow between all screens
+- [ ] Verify canvas drawing functionality
+- [ ] Test undo/redo system with edge cases:
+  - [ ] Maximum 5 undos
+  - [ ] Proper redo behavior
+  - [ ] Clearing redo stack when drawing new path
+- [ ] Test button state management (enabled/disabled at appropriate times)
+- [ ] Verify styling matches mockups
+- [ ] Ensure responsive layout on different device sizes
+
+## 8. Optimization & Polishing
+- [ ] Optimize drawing performance
+- [ ] Add smooth animations for transitions
+- [ ] Clean up code and remove any console logs
+- [ ] Add appropriate comments
+- [ ] Final UI review against mockups for accuracy
+
+This implementation plan breaks down the project into manageable chunks while ensuring all requirements are met. Start with the basic structure and work your way through each screen and feature set.
