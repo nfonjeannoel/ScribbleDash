@@ -32,6 +32,20 @@ class DrawingViewModel : ViewModel() {
         emptyList()
     )
     
+    // Whether there are undone paths that can be redone
+    val hasUndonePaths = repository.hasUndonePathsFlow().stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        false
+    )
+    
+    // Whether there are paths that can be undone
+    val hasUndoablePaths = repository.hasUndoablePathsFlow().stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        false
+    )
+    
     // Functions for drawing operations
     fun addPath(path: Path) {
         viewModelScope.launch {
@@ -48,6 +62,12 @@ class DrawingViewModel : ViewModel() {
     fun undoLastPath() {
         viewModelScope.launch {
             repository.undoLastPath()
+        }
+    }
+    
+    fun redoLastPath() {
+        viewModelScope.launch {
+            repository.redoLastPath()
         }
     }
     

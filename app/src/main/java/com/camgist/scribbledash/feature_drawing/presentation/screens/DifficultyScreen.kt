@@ -46,6 +46,7 @@ import com.camgist.scribbledash.ui.theme.GradientStart
 import com.camgist.scribbledash.ui.theme.TextPrimary
 import com.camgist.scribbledash.ui.theme.TextSecondary
 import com.camgist.scribbledash.ui.theme.White
+import com.camgist.scribbledash.core.presentation.components.CloseButton
 
 @Composable
 fun DifficultyScreen(
@@ -69,25 +70,12 @@ fun DifficultyScreen(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(16.dp)
-                .border(
-                    width = 1.5.dp,
-                    color = Color(0xFFEEE6DD),
-                    shape = CircleShape
-                )
-                .clip(CircleShape)
         ) {
-            IconButton(
+            CloseButton(
                 onClick = {
                     navController.navigateUp()
                 }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Close",
-                    tint = TextPrimary,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
+            )
         }
         
         // Main content

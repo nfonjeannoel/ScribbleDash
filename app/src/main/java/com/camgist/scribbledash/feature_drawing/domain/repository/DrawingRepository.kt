@@ -26,4 +26,19 @@ interface DrawingRepository {
      * Undo the last path added
      */
     suspend fun undoLastPath()
+    
+    /**
+     * Redo the last undone path
+     */
+    suspend fun redoLastPath()
+    
+    /**
+     * Check if there are any undone paths that can be redone
+     */
+    fun hasUndonePathsFlow(): Flow<Boolean>
+    
+    /**
+     * Check if there are any paths that can be undone
+     */
+    fun hasUndoablePathsFlow(): Flow<Boolean>
 } 
